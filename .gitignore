@@ -12,3 +12,4 @@ video-digest/bin/
 Thumbs.db
 desktop.ini
 **/.git_backup_not_used/
+pattern-scan/cache/
