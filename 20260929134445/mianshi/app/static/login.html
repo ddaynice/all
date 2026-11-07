@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>登录 · 我的 AI 平台</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  :root { --bg: #050b14; --lime: #c9f24e; --dim: #8ea0b8; }
+  body {
+    font-family: -apple-system, "PingFang SC", "Microsoft YaHei", sans-serif;
+    min-height: 100vh; display: flex; align-items: center; justify-content: center;
+    background: var(--bg); color: #e8eef7; position: relative; overflow: hidden;
+  }
+  body::before {
+    content: ''; position: fixed; inset: 0; pointer-events: none;
+    background-image:
+      linear-gradient(rgba(142, 160, 184, .05) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(142, 160, 184, .05) 1px, transparent 1px);
+    background-size: 52px 52px;
+    mask-image: radial-gradient(ellipse 90% 70% at 50% 30%, #000 30%, transparent 100%);
+  }
+  body::after {
+    content: ''; position: fixed; inset: 0; pointer-events: none;
+    background: radial-gradient(ellipse 55% 45% at 70% 20%, rgba(201, 242, 78, .08), transparent 70%);
+  }
+  .wrap { position: relative; z-index: 1; width: 400px; padding: 0 24px; }
+  .kicker {
+    font-size: 12px; letter-spacing: 4px; color: var(--lime);
+    font-weight: 700; margin-bottom: 14px;
+  }
+  h1 {
+    font-size: 52px; font-weight: 250; line-height: 1; text-transform: uppercase;
+    letter-spacing: 1px; margin-bottom: 10px;
+  }
+  h1 .arrow { color: var(--lime); }
+  .sub { color: var(--dim); font-size: 14px; margin-bottom: 44px; }
+  .field label {
+    display: block; font-family: Consolas, monospace; font-size: 10px;
+    letter-spacing: 3px; color: #55677f; margin-bottom: 10px;
+  }
+  input {
+    width: 100%; padding: 15px 16px; border-radius: 12px; font-size: 15px;
+    border: 1px solid #1c2a42; background: rgba(12, 21, 36, .8); color: #e8eef7; outline: none;
+    transition: border-color .2s, box-shadow .2s;
+  }
+  input:focus { border-color: var(--lime); box-shadow: 0 0 0 3px rgba(201, 242, 78, .12); }
+  button {
+    width: 100%; margin-top: 18px; padding: 15px; border: none; border-radius: 12px;
+    background: var(--lime); color: #0b1220; font-size: 15px; font-weight: 800;
+    letter-spacing: 2px; cursor: pointer; transition: filter .2s, transform .1s;
+  }
+  button:hover { filter: brightness(1.08); }
+  button:active { transform: scale(.99); }
+  button:disabled { opacity: .5; cursor: not-allowed; }
+  .err { color: #f87171; font-size: 13px; margin-top: 14px; min-height: 18px; }
+  .foot {
+    margin-top: 60px; display: flex; justify-content: space-between;
+    font-family: Consolas, monospace; font-size: 10px; letter-spacing: 3px; color: #55677f;
+  }
+</style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="kicker">ACCESS</div>
+    <h1>COME IN <span class="arrow">↘</span></h1>
+    <div class="sub">我的 AI 工作台 · 请输入邀请码进入</div>
+    <div class="field">
+      <label>INVITE CODE</label>
+      <input id="code" type="password" placeholder="邀请码" autofocus
+             onkeydown="if(event.key==='Enter')login()">
+    </div>
+    <button id="btn" onclick="login()">进 入</button>
+    <div class="err" id="err"></div>
+    <div class="foot"><span>MY AI STATION</span><span>PRIVATE</span></div>
+  </div>
+<script>
+async function login() {
+  const code = document.getElementById('code').value.trim();
+  const err = document.getElementById('err');
+  const btn = document.getElementById('btn');
+  if (!code) { err.textContent = '请输入邀请码'; return; }
+  btn.disabled = true; err.textContent = '';
+  try {
+    const resp = await fetch('/api/login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ code }),
+    });
+    if (resp.ok) { location.href = '/'; return; }
+    const data = await resp.json().catch(() => ({}));
+    err.textContent = data.detail || '登录失败';
+  } catch (e) {
+    err.textContent = '网络错误，请确认服务已启动';
+  }
+  btn.disabled = false;
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,14 @@
+# ── 敏感信息（严禁上传） ──
+video-digest/cookies.txt
+
+# ── 生成产物与大文件 ──
+output/
+__pycache__/
+*.pyc
+*.log
+video-digest/bin/
+
+# ── 系统文件与遗留 ──
+Thumbs.db
+desktop.ini
+**/.git_backup_not_used/

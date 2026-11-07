@@ -1,0 +1,15 @@
+# ==== 绝不能提交：密钥 ====
+tools/ai-config.json
+
+# ==== 平台密钥与运行数据（绝不能提交） ====
+app/.env
+app/data/
+
+# ==== 日志/临时 ====
+data/polish.log
+data/polish.err.log
+.cache/
+__pycache__/
+*.pyc
+.DS_Store
+Thumbs.db

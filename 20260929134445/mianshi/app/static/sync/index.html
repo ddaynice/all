@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>资料同步</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  :root {
+    --bg: #050b14; --card: rgba(12, 21, 36, .75); --line: #1c2a42;
+    --txt: #e8eef7; --dim: #8ea0b8; --faint: #55677f; --lime: #c9f24e;
+  }
+  body {
+    font-family: -apple-system, "PingFang SC", "Microsoft YaHei", sans-serif;
+    min-height: 100vh; color: var(--txt); background: var(--bg);
+    position: relative; overflow-x: hidden;
+  }
+  body::before {
+    content: ''; position: fixed; inset: 0; pointer-events: none;
+    background-image:
+      linear-gradient(rgba(142, 160, 184, .05) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(142, 160, 184, .05) 1px, transparent 1px);
+    background-size: 52px 52px;
+    mask-image: radial-gradient(ellipse 90% 70% at 50% 0%, #000 30%, transparent 100%);
+  }
+  nav {
+    position: fixed; top: 18px; left: 50%; transform: translateX(-50%);
+    z-index: 10; width: min(880px, 92%);
+    display: flex; align-items: center; justify-content: space-between;
+    background: rgba(7, 14, 26, .78); backdrop-filter: blur(16px);
+    border: 1px solid rgba(142, 160, 184, .16); border-radius: 999px;
+    padding: 7px 8px 7px 8px;
+  }
+  .logo {
+    display: inline-flex; align-items: center; gap: 8px;
+    background: var(--lime); color: #0b1220;
+    font-weight: 800; font-size: 13px; letter-spacing: 1px;
+    padding: 9px 18px; border-radius: 999px;
+  }
+  .logo i { width: 14px; height: 14px; border-radius: 50%; background: #0b1220; display: inline-block; }
+  .back {
+    color: var(--dim); text-decoration: none; font-size: 13px;
+    padding: 9px 18px; border-radius: 999px; border: 1px solid rgba(142, 160, 184, .3);
+  }
+  .back:hover { border-color: var(--lime); color: var(--lime); }
+  main { max-width: 880px; margin: 0 auto; padding: 130px 24px 60px; position: relative; z-index: 1; }
+  .kicker { font-size: 12px; letter-spacing: 4px; color: var(--lime); font-weight: 700; margin-bottom: 14px; }
+  h1 { font-size: clamp(30px, 5vw, 44px); font-weight: 300; line-height: 1.1; }
+  h1 .arrow { color: var(--lime); }
+  .sub { color: var(--dim); font-size: 14px; margin: 14px 0 34px; }
+  /* 统计 */
+  .stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; margin-bottom: 26px; }
+  .stat {
+    background: var(--card); border: 1px solid var(--line); border-radius: 14px;
+    padding: 18px 20px;
+  }
+  .stat .v { font-size: 26px; font-weight: 700; }
+  .stat .k {
+    font-family: Consolas, monospace; font-size: 10px; letter-spacing: 3px;
+    color: var(--faint); margin-top: 6px;
+  }
+  /* 流程步骤 */
+  .steps { display: flex; flex-direction: column; gap: 8px; margin-bottom: 26px; }
+  .step {
+    display: flex; align-items: center; gap: 12px;
+    background: var(--card); border: 1px solid var(--line); border-radius: 12px;
+    padding: 13px 18px; font-size: 14px;
+  }
+  .step .dot {
+    width: 9px; height: 9px; border-radius: 50%; background: var(--faint); flex-shrink: 0;
+  }
+  .step.running .dot { background: var(--lime); box-shadow: 0 0 8px rgba(201,242,78,.7); animation: pulse 1s infinite; }
+  .step.done .dot { background: var(--lime); }
+  .step.failed .dot { background: #f87171; }
+  @keyframes pulse { 50% { opacity: .35; } }
+  .step .st { margin-left: auto; font-family: Consolas, monospace; font-size: 11px; color: var(--faint); letter-spacing: 1px; }
+  .step.done .st { color: var(--lime); }
+  .step.failed .st { color: #f87171; }
+  /* 操作区 */
+  .actions { display: flex; align-items: center; gap: 16px; margin-bottom: 26px; flex-wrap: wrap; }
+  button.run {
+    padding: 13px 34px; border: none; border-radius: 12px; cursor: pointer;
+    background: var(--lime); color: #0b1220; font-size: 14px; font-weight: 800;
+    letter-spacing: 2px; transition: filter .2s;
+  }
+  button.run:hover { filter: brightness(1.08); }
+  button.run:disabled { opacity: .4; cursor: not-allowed; }
+  .hint { font-size: 12.5px; color: var(--faint); line-height: 1.7; }
+  .hint b { color: var(--dim); font-weight: 500; }
+  /* 日志 */
+  .console {
+    background: rgba(2, 6, 23, .92); border: 1px solid var(--line); border-radius: 14px;
+    padding: 16px 18px; height: 300px; overflow-y: auto;
+    font-family: Consolas, monospace; font-size: 12px; line-height: 1.7;
+    color: #9fb3cc; white-space: pre-wrap; word-break: break-all;
+  }
+  .console .ok { color: var(--lime); }
+  .console .bad { color: #f87171; }
+</style>
+</head>
+<body>
+  <nav>
+    <div class="logo"><i></i>SYNC</div>
+    <a class="back" href="/">← 返回平台</a>
+  </nav>
+
+  <main>
+    <div class="kicker">KNOWLEDGE PIPELINE</div>
+    <h1>资料同步 <span class="arrow">↘</span></h1>
+    <div class="sub">飞书文档 → 转换入库 → 重建 AI 检索索引，一键完成。</div>
+
+    <div class="stats">
+      <div class="stat"><div class="v" id="stDocs">–</div><div class="k">文档数</div></div>
+      <div class="stat"><div class="v" id="stChunks">–</div><div class="k">索引片段</div></div>
+      <div class="stat"><div class="v" id="stLast">–</div><div class="k">上次同步</div></div>
+    </div>
+
+    <div class="steps" id="steps"></div>
+
+    <div class="actions">
+      <button class="run" id="runBtn" onclick="startSync()">开始同步</button>
+      <div class="hint" id="hint"></div>
+    </div>
+
+    <div class="console" id="console">等待操作…</div>
+  </main>
+
+<script>
+const $ = s => document.querySelector(s);
+let polling = null;
+
+function fmtTime(ts) {
+  if (!ts) return '从未';
+  const d = new Date(ts * 1000);
+  const p = n => String(n).padStart(2, '0');
+  return `${d.getMonth() + 1}-${p(d.getDate())} ${p(d.getHours())}:${p(d.getMinutes())}`;
+}
+
+async function refresh() {
+  const s = await (await fetch('/api/sync/status')).json();
+  $('#stDocs').textContent = s.stats.docs;
+  $('#stChunks').textContent = s.stats.chunks;
+  $('#stLast').textContent = fmtTime(s.last_sync);
+
+  $('#steps').innerHTML = s.steps.map(t => `
+    <div class="step ${t.status}">
+      <div class="dot"></div>
+      <div>${t.name}</div>
+      <div class="st">${t.status === 'running' ? 'RUNNING' : t.status === 'done' ? 'DONE' : 'FAILED'}</div>
+    </div>`).join('');
+
+  const c = $('#console');
+  if (s.log.length) {
+    const html = s.log.map(l => {
+      const cls = l.startsWith('✓') ? 'ok' : l.startsWith('✗') ? 'bad' : '';
+      return `<span class="${cls}">${l.replace(/&/g,'&amp;').replace(/</g,'&lt;')}</span>`;
+    }).join('\n');
+    if (c.dataset.n !== String(s.log.length)) {
+      c.innerHTML = html;
+      c.dataset.n = String(s.log.length);
+      c.scrollTop = c.scrollHeight;
+    }
+  }
+
+  const btn = $('#runBtn');
+  btn.disabled = s.running;
+  btn.textContent = s.running ? '同步中…' : (s.last_ok === false ? '重新同步' : '开始同步');
+
+  let hint = '';
+  if (!s.feishu_configured) {
+    hint = '<b>未配置飞书凭证</b>：将只执行「转换 + 重建索引」（处理 feishu_export/ 里已有的文件）。要自动拉取最新文档，请在 app/.env 配置 FEISHU_APP_ID / FEISHU_APP_SECRET（可选 FEISHU_SPACE_ID）后重启。';
+  } else if (s.running) {
+    hint = '正在同步，请勿关闭本页…';
+  } else if (s.last_ok === false) {
+    hint = '上次同步失败，请查看日志排查后重试。';
+  }
+  $('#hint').innerHTML = hint;
+
+  if (s.running && !polling) polling = setInterval(refresh, 1500);
+  if (!s.running && polling) { clearInterval(polling); polling = null; }
+  return s;
+}
+
+async function startSync() {
+  const btn = $('#runBtn');
+  btn.disabled = true;
+  const resp = await fetch('/api/sync/start', { method: 'POST' });
+  if (!resp.ok) {
+    const d = await resp.json().catch(() => ({}));
+    $('#hint').textContent = d.detail || '启动失败';
+  }
+  refresh();
+}
+
+refresh();
+</script>
+</body>
+</html>

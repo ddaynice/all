@@ -1,0 +1,5 @@
+# 可选依赖：装了解析质量更好，不装脚本也能跑（会走降级方案）
+html2text>=2024.2.26      # HTML -> Markdown，优先使用
+markdownify>=0.11.6       # 备选 HTML -> Markdown
+mammoth>=1.6.0            # docx -> HTML/Markdown
+python-docx>=1.1.0        # 备选 docx 解析

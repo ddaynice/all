@@ -1,0 +1,9 @@
+把飞书知识库导出的 zip 直接丢进这个目录（不用解压），也可以直接放 .md / .html / .docx 文件。
+
+然后回到项目根目录执行：
+
+    python tools/import_feishu.py
+
+再打开 src/index.html 刷新页面即可开始自测。
+
+详细导出步骤见 ../README.md
