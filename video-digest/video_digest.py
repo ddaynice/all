@@ -172,7 +172,7 @@ def extract_audio(video, out_dir, ffmpeg):
 
 def transcribe(wav, out_dir, info, model_size, ffmpeg):
     md = out_dir / "字幕.md"
-    if md.exists():
+    if md.exists() and md.stat().st_size > 100:
         log("  文字稿已存在，跳过转写")
         return md
     # 用 ffmpeg 解码为 16kHz float32 原始 PCM，绕开 PyAV 版本兼容问题
@@ -187,10 +187,15 @@ def transcribe(wav, out_dir, info, model_size, ffmpeg):
     model = WhisperModel(model_size, device="cpu", compute_type="int8")
     segments, _info = model.transcribe(audio, language="zh", vad_filter=True,
                                        beam_size=5)
+    # 逐段即时落盘：中途崩溃也保留已转写进度（空文件/短文件下次会重试而非跳过）
     with open(md, "w", encoding="utf-8") as f:
         f.write(f"# {info['title']}（whisper {model_size} 转写）\n\n")
+        n = 0
         for seg in segments:
             f.write(f"[{int(seg.start//60):02d}:{int(seg.start%60):02d}] {seg.text.strip()}\n")
+            f.flush()
+            n += 1
+    log(f"  转写完成：{n} 段")
     return md
 
 
